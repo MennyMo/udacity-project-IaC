@@ -1,0 +1,10 @@
+// [
+//     {
+//       "ParameterKey": "ParamInstanceTypeJumpBox",
+//       "ParameterValue": "t3.micro"
+//     },
+//     {
+//       "ParameterKey": "ParamInstanceTypeWebServer",
+//       "ParameterValue": "t3.small"
+//     }
+//   ]

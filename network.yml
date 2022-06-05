@@ -1,0 +1,197 @@
+   
+Description: >
+  Udacity Cloud DevOps Engineer Nanodegree Program - Project 1. 
+  Deploy a High Availability Web App With Cloudformation.
+Parameters:
+
+  ParamVPCCIRD:
+    Description: IP range (CIDR notation)
+    Type: String
+    Default: 10.0.0.0/16
+
+  ParamPublicSubnet1CIRD:
+    Description: IP range (CIDR notation)
+    Type: String
+    Default: 10.0.1.0/24
+
+  ParamPublicSubnetCIRD:
+    Description: IP range (CIDR notation)
+    Type: String
+    Default: 10.0.2.0/24
+
+  ParamPrivateSubnet1CIRD:
+    Description: IP range (CIDR notation)
+    Type: String
+    Default: 10.0.3.0/24
+
+  ParamPrivateSubnetCIRD:
+    Description: IP range (CIDR notation)
+    Type: String
+    Default: 10.0.4.0/24
+
+Resources:
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref ParamVPCCIRD
+      EnableDnsHostnames: true
+
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # Subnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref ParamPublicSubnet1CIRD
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: false
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref ParamPublicSubnetCIRD
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      MapPublicIpOnLaunch: false
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref ParamPrivateSubnet1CIRD
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: false
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref ParamPrivateSubnetCIRD
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      MapPublicIpOnLaunch: false
+
+  # EIP NAT
+  EIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  EIP2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NAT1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+
+  NAT2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP2.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  # Public Route
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  AssociatePublicRouteTable1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  AssociatePublicRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  PublicInternetRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+
+  # Private Routes
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  AssociatePrivateRouteTable1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+
+  AssociatePrivateRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+
+  PrivateInternetRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      NatGatewayId: !Ref NAT1
+      DestinationCidrBlock: 0.0.0.0/0
+
+  PrivateInternetRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      NatGatewayId: !Ref NAT2
+      DestinationCidrBlock: 0.0.0.0/0
+
+Outputs:
+
+  VPC:
+    Description: A reference to the created VPC
+    Value: !Ref VPC
+    Export:
+      Name: OutputVPC
+
+  PublicSubnet1:
+    Description: A reference to the created Subnet
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: OutputPublicSubnet1
+
+  PublicSubnet:
+    Description: A reference to the created Subnet
+    Value: !Ref PublicSubnet
+    Export:
+      Name: OutputPublicSubnet
+
+  PrivateSubnet1:
+    Description: A reference to the created Subnet
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: OutputPrivateSubnet1
+
+  PrivateSubnet:
+    Description: A reference to the created Subnet
+    Value: !Ref PrivateSubnet
+    Export:
+      Name: OutputPrivateSubnet
