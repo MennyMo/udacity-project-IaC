@@ -2,17 +2,6 @@ Description: >
   Template for services such as Load Balancers, Security Groups, Jumpbox, the required 
   Ubuntu server 18.04
   
-# Parameters:
-
-#   ParamInstanceTypeJumpBox:
-#     Description: t2.medium
-#     Type: String
-#     AllowedValues: [t2.medium, t3.small, t3.nano, t3.micro, t3.small, t3.medium, t3.large, t3.xlarge, t3.2xlarge]
-
-#   ParamInstanceTypeWebServer:
-#     Description: t2.medium
-#     Type: String
-#     AllowedValues: [t2.medium, t3.small, t3.nano, t3.micro, t3.small, t3.medium, t3.large, t3.xlarge, t3.2xlarge]
 
 Resources:
 
@@ -69,49 +58,9 @@ Resources:
           ToPort: 65535
           CidrIp: 0.0.0.0/0
 
-  # JumpBox
-  # JumpBoxInstance:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     ImageId: ami-0742b4e673072066f
-  #     KeyName: udacity-project-02-jumpbox-key
-  #     InstanceType: !Ref ParamInstanceTypeJumpBox
-  #     NetworkInterfaces:
-  #       - AssociatePublicIpAddress: "true"
-  #         DeviceIndex: "0"
-  #         GroupSet:
-  #           - !Ref JumBoxSecurityGroup
-  #         SubnetId: !ImportValue OutputPublicSubnet1          
-  #     BlockDeviceMappings:
-  #       - DeviceName: "/dev/sdk"
-  #         Ebs:
-  #           VolumeSize: '10'
 
 ################################################ Web Server Configuration#################################################
 ################################################ Ubuntu Server 18.04 LTS (HVM), SSD Volume Type#################################################
-  # WebServerLaunchConfig:
-  #   Type: AWS::AutoScaling::LaunchConfiguration
-  #   Properties:
-  #     UserData:
-  #       Fn::Base64: !Sub |
-  #         #!/bin/bash
-  #         apt-get update -y
-  #         apt-get install unzip awscli -y
-  #         apt-get install apache2 -y
-  #         systemctl start apache2.service
-  #         cd /var/www/html
-  #         aws s3 cp s3://udacity-demo-1/udacity.zip .
-  #         unzip -o udacity.zip
-  #     ImageId: ami-013f17f36f8b1fefb
-  #     InstanceType: !Ref ParamInstanceTypeWebServer
-  #     KeyName: udacity-project-02-webserver-key
-  #     IamInstanceProfile: !ImportValue OutputProfileInstance
-  #     SecurityGroups:
-  #       - !Ref WebServerSecurityGroup
-  #     BlockDeviceMappings:
-  #       - DeviceName: "/dev/sdk"
-  #         Ebs:
-  #           VolumeSize: '10'
 
 ################################################# Web Application Target Group#####################################################
   WebServerTargetGroup:
@@ -126,20 +75,6 @@ Resources:
       Protocol: HTTP
       UnhealthyThresholdCount: 5
       VpcId: !ImportValue OutputVPC
-
-   ################################################# Web Application Auto Scaling Group######################################################
-
-  # WebServerAutoScalingGroup:
-  #   Type: AWS::AutoScaling::AutoScalingGroup
-  #   Properties:
-  #     VPCZoneIdentifier:
-  #       - !ImportValue OutputPrivateSubnet1
-  #       - !ImportValue OutputPrivateSubnet
-  #     LaunchConfigurationName: !Ref WebServerLaunchConfig
-  #     MinSize: '2'
-  #     MaxSize: '3'
-  #     TargetGroupARNs:
-  #       - !Ref WebServerTargetGroup
 
  ################################################Load Balancer######################################################
   LoadBalancer:
