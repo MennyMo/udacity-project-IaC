@@ -1,0 +1,11 @@
+[
+	{
+		"ParameterKey": "EnvironmentName",
+		"ParameterValue": "myProject4"
+	},
+  {
+    "ParameterKey":"EC2AMI",
+    "ParameterValue":"ami-0c4f7023847b90238"
+  }
+
+]
